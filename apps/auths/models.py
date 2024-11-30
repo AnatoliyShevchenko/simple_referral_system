@@ -71,29 +71,30 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = 'пользователи'
 
     @staticmethod
-    def generate_auth_code():
-        return "".join(random.choices(string.digits, k=4))
+    def generate_auth_code() -> str:
+        while True:
+            code = "".join(random.choices(string.digits, k=4))
+            if not User.objects.filter(auth_code=code).exists():
+                return code
 
-    def set_auth_code(self):
+    def set_auth_code(self) -> str:
         """
         Генерируем и сохраняем новый код авторизации.
         Будет действителен всего 2 минуты.
         """
         self.auth_code = self.generate_auth_code()
         self.auth_code_expires = timezone.now() + timedelta(minutes=2)
-
+        self.save()
+        return self.auth_code
+            
     @staticmethod
-    def generate_invite_code():
+    def generate_invite_code() -> str:
         while True:
             code = "".join(random.choices(
                 string.ascii_letters + string.digits, k=6
             ))
             if not User.objects.filter(invite_code=code).exists():
                 return code
-            
-    def is_auth_code_valid(self, code):
-        """Проверяет, действителен ли код."""
-        return self.auth_code == code and self.auth_code_expires > timezone.now()
 
     def save(self, *args, **kwargs):
         """
@@ -109,6 +110,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             logger.info(f"Client with phone number {self.phone} has been registered")
         except Exception as e:
             logger.error(f"Cannot register Client with phone number {self.phone}. ERROR: {e}")
+            raise 
 
     def __str__(self) -> str:
         return f"{self.phone}"
