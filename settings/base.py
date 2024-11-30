@@ -7,7 +7,6 @@ import django_redis
 from pathlib import Path
 import sys
 import os
-import time
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,9 +20,13 @@ DEBUG = bool(ENV_VALUES.get("DEBUG"))
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    # Project
+    "auths.apps.AuthsConfig",
+    # RestFramework
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
+    # Django
     "debug_toolbar",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -33,7 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
-# AUTH_USER_MODEL = "auths.Client"
+AUTH_USER_MODEL = "auths.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -111,10 +114,8 @@ CORS_ALLOW_METHODS = ["*"]
 CORS_ALLOW_HEADERS = ["*"]
 
 logger.add(
-    sink=f"{VOLUME}logs_{{time:YYYY-MM-DD}}.log.json", 
-    level="INFO", enqueue=True, format="{time} {level} {message}", 
-    colorize=True, retention="7 days",
-    serialize=True, rotation="00:00", compression="zip"
+    sink=sys.stderr, level="INFO", enqueue=True, 
+    format="{time} {level} {message}", 
 )
 
 DEBUG_TOOLBAR_PANELS = [
