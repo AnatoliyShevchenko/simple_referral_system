@@ -1,0 +1,42 @@
+name: Main
+
+on:
+    pull_request:
+        branches: [ "develop" ]
+
+jobs:
+
+  create-proj:
+ 
+    runs-on: self-hosted
+ 
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v2.0
+      with:
+        envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        envkey_DEBUG: ${{ secrets.DEBUG }}
+        envkey_DB_NAME: ${{ secrets.DB_NAME }}
+        envkey_DB_HOST: ${{ secrets.DB_HOST }}
+        envkey_DB_PORT: ${{ secrets.DB_PORT }}
+        envkey_DB_USER: ${{ secrets.DB_USER }}
+        envkey_DB_PASS: ${{ secrets.DB_PASS }}
+        envkey_CACHE_REDIS: ${{ secrets.CACHE_REDIS }}
+        directory: .
+        file_name: .env
+        fail_on_empty: false
+        sort_keys: false
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+  
+    - name: Build and run services
+      run: |
+        docker-compose down
+        docker-compose up -d --build
+
+    - name: Check running containers
+      run: docker ps
