@@ -20,6 +20,8 @@ from loguru import logger
 # Django
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 # Python
 import random
@@ -130,6 +132,7 @@ class UserProfileView(APIView):
             401: "Unauthorized"
         } 
     )
+    @method_decorator(cache_page(600))
     def get(self, request: Request):
         user = User.objects.prefetch_related(
             "invited_users"
