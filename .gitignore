@@ -1,3 +1,9 @@
 # Environments
 env/
 .env
+
+# Cache
+__pycache__/
+
+# Logs
+*.log.json

@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
-AUTH_USER_MODEL = "auths.Client"
+# AUTH_USER_MODEL = "auths.Client"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -70,11 +70,10 @@ WSGI_APPLICATION = "settings.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": ENV_VALUES.get("DB_NAME"),
-        "USER": ENV_VALUES.get("ADMIN"),
-        "PASSWORD": ENV_VALUES.get("PASSWORD"),
-        "HOST": ENV_VALUES.get("HOST"),
-        "PORT": ENV_VALUES.get("PORT"),
+        "OPTIONS": {
+            "service": "my_service",
+            "passfile": ".my_pgpass",
+        },
     }
 }
 
