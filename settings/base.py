@@ -1,7 +1,6 @@
 # Third-Party
 from dotenv import dotenv_values
 from loguru import logger
-import django_redis
 
 # Python
 from pathlib import Path
@@ -72,20 +71,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "settings.wsgi.application"
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.postgresql",
-    #     "OPTIONS": {
-    #         "service": "my_service",
-    #         "passfile": ".my_pgpass",
-    #     },
-    # },
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "simple_referral_system",
-        "USER": "postgres",
-        "PASSWORD": "root",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+        "NAME": ENV_VALUES.get("DB_NAME"),
+        "USER": ENV_VALUES.get("DB_USER"),
+        "PASSWORD": ENV_VALUES.get("DB_PASS"),
+        "HOST": ENV_VALUES.get("DB_HOST"),
+        "PORT": ENV_VALUES.get("DB_PORT"),
     }
 }
 
@@ -112,9 +104,9 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -146,12 +138,8 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": ENV_VALUES.get("CACHE_REDIS"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "TIMEOUT": 3600,
-        }
     }
 }
 
@@ -165,14 +153,14 @@ REST_FRAMEWORK = {
 }
 
 SWAGGER_SETTINGS = {
-   'SECURITY_DEFINITIONS': {
-      'Basic': {
-            'type': 'basic'
-      },
-      'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-      }
-   }
+    "SECURITY_DEFINITIONS": {
+        "Basic": {
+            "type": "basic"
+        },
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
 }
