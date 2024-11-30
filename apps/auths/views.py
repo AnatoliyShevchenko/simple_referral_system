@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import ValidationError
 
 # SimpleJWT
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -26,25 +27,34 @@ import time
 
 # Local
 from .models import User
-from .serializers import \
-    PhoneNumberSerializer, AuthCodeSerializer, TokensSerializer
+from .serializers import (
+    PhoneNumberSerializer, AuthCodeSerializer, TokensSerializer,
+    UserSerializer, InviterSerializer
+)
 
 
 @permission_classes([AllowAny])
 class AuthView(TokenObtainPairView):
-    """Custom authorization with validation fields."""
+    """Custom authorization with sending message."""
 
     @swagger_auto_schema(
         request_body=PhoneNumberSerializer, 
         responses={
             200: "Your authenticate code has been sent to your phone! " 
             "(0000) It's active only for 2 minutes!" , 
+            400: str(ValidationError.default_detail),
             409: "Conflict creating or finding user."
         } 
     )
     def post(self, request: Request):
-        serializer = PhoneNumberSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = PhoneNumberSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+        except ValidationError as ve:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"detail": str(ve.default_detail)}
+            )
         phone_number = serializer.validated_data.get("phone_number")
         user, _ = User.objects.get_or_create(phone=phone_number)
         if not user: 
@@ -106,3 +116,56 @@ class AuthView(TokenObtainPairView):
                 status=status.HTTP_404_NOT_FOUND, 
                 data={"detail": "Auth code is invalid or expired"}
             )
+
+
+@permission_classes([IsAuthenticated])
+class UserProfileView(APIView):
+    """View for user's profile."""
+
+    authentication_classes = [JWTAuthentication]
+    
+    @swagger_auto_schema(
+        responses={
+            200: UserSerializer,
+            401: "Unauthorized"
+        } 
+    )
+    def get(self, request: Request):
+        user = User.objects.prefetch_related(
+            "invited_users"
+        ).get(id=request.user.id)
+        serializer = UserSerializer(instance=user)
+        return Response(
+            data=serializer.data, status=status.HTTP_200_OK
+        )
+    
+    @swagger_auto_schema(
+        request_body=InviterSerializer, responses={
+            200: "You have successfully activated the invite code!",
+            404: "user not found",
+            409: "you have already activate the code!"
+        }
+    )
+    def patch(self, request: Request):
+        user: User = request.user
+        if user.inviter:
+            return Response(
+                status=status.HTTP_409_CONFLICT, 
+                data={"detail": "you have already activate the code!"}
+            )
+        serializer = InviterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invite_code = serializer.validated_data.get("invited_by")
+        try:
+            inviter = User.objects.get(invite_code=invite_code)
+        except User.DoesNotExist:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND, 
+                data={"detail": "user not found"}
+            )
+        user.inviter = inviter
+        user.save()
+        return Response(
+            status=status.HTTP_200_OK, 
+            data={"detail": "You have successfully activated the invite code!"}
+        )

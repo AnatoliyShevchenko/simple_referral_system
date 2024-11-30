@@ -41,16 +41,22 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name="пароль", max_length=256, blank=True, null=True
     )
     invite_code = models.CharField(
-        max_length=6, unique=True, blank=True, null=True
+        max_length=6, unique=True, blank=True, 
+        null=True, verbose_name="Код приглашения"
     )
-    activated_invite_code = models.CharField(
-        max_length=6, blank=True, null=True
+    inviter = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, 
+        blank=True, null=True, related_name="invited_users", 
+        verbose_name="Пригласивший пользователь"
     )
-    invited_users = models.ManyToManyField(
-        "self", symmetrical=False, related_name="invited_by"
+    auth_code = models.CharField(
+        max_length=4, blank=True, null=True, 
+        verbose_name="код авторизации"
     )
-    auth_code = models.CharField(max_length=4, blank=True, null=True)
-    auth_code_expires = models.DateTimeField(blank=True, null=True)
+    auth_code_expires = models.DateTimeField(
+        blank=True, null=True, 
+        verbose_name="время действия кода активации"
+    )
     is_active = models.BooleanField(
         verbose_name="активный", default=False
     )
