@@ -1,0 +1,59 @@
+services:
+
+  db:
+    image: postgres
+    container_name: simple-referral-system-postgres
+    volumes:
+      - simple-referral-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    restart: always
+    networks:
+      - simple-referral
+
+  redis:
+    image: redis
+    container_name: simple-referral-system-redis
+    restart: always
+    networks:
+      - simple-referral
+
+  app:
+    build: .
+    container_name: simple-referral-system-app
+    entrypoint: [/scripts/entrypoint.sh]
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    restart: always
+    networks:
+      - simple-referral
+    volumes:
+      - staticfiles:/app/staticfiles
+
+  nginx:
+    image: nginx
+    container_name: simple-referral-system-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - staticfiles:/app/staticfiles/
+    depends_on:
+      - app
+    restart: always
+    networks:
+      - simple-referral
+
+networks:
+  simple-referral:
+
+volumes:
+  simple-referral-db:
+  staticfiles:

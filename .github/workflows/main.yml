@@ -1,0 +1,37 @@
+name: Main
+
+on:
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+
+  create-proj:
+ 
+    runs-on: self-hosted
+ 
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Make envfile
+      run: |
+        printf "SECRET_KEY='%s'\n" "${{ secrets.SECRET_KEY }}" >> .env
+        printf "DEBUG='%s'\n" "${{ secrets.DEBUG }}" >> .env
+        printf "DB_NAME='%s'\n" "${{ secrets.DB_NAME }}" >> .env
+        printf "DB_HOST='%s'\n" "${{ secrets.DB_HOST }}" >> .env
+        printf "DB_PORT='%s'\n" "${{ secrets.DB_PORT }}" >> .env
+        printf "DB_USER='%s'\n" "${{ secrets.DB_USER }}" >> .env
+        printf "DB_PASS='%s'\n" "${{ secrets.DB_PASS }}" >> .env
+        printf "CACHE_REDIS='%s'\n" "${{ secrets.CACHE_REDIS }}" >> .env
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+  
+    - name: Build and run services
+      run: |
+        docker compose down
+        docker compose up -d --build
+
+    - name: Check running containers
+      run: docker ps
