@@ -16,14 +16,14 @@ jobs:
 
     - name: Make envfile
       run: |
-        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-        echo "DEBUG=${{ secrets.DEBUG }}" >> .env
-        echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-        echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-        echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-        echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-        echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-        echo "CACHE_REDIS=${{ secrets.CACHE_REDIS }}" >> .env
+        printf "SECRET_KEY='%s'\n" "${{ secrets.SECRET_KEY }}" >> .env
+        printf "DEBUG='%s'\n" "${{ secrets.DEBUG }}" >> .env
+        printf "DB_NAME='%s'\n" "${{ secrets.DB_NAME }}" >> .env
+        printf "DB_HOST='%s'\n" "${{ secrets.DB_HOST }}" >> .env
+        printf "DB_PORT='%s'\n" "${{ secrets.DB_PORT }}" >> .env
+        printf "DB_USER='%s'\n" "${{ secrets.DB_USER }}" >> .env
+        printf "DB_PASS='%s'\n" "${{ secrets.DB_PASS }}" >> .env
+        printf "CACHE_REDIS='%s'\n" "${{ secrets.CACHE_REDIS }}" >> .env
 
     - name: Set up Docker
       uses: docker/setup-buildx-action@v2
