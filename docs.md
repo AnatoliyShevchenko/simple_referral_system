@@ -13,6 +13,7 @@
 
 ---
 ## Структура проекта
+```plaintext
 ├── .github/                # Конфигурации для CI/CD
 │   └── workflows/
 │       └── main.yml        # Основной pipeline для деплоя
